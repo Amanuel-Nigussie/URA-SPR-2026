@@ -1,1 +1,5 @@
 streamlit
+rapidfuzz
+pandas
+numpy
+matplotlib

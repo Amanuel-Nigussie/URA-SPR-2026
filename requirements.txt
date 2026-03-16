@@ -3,3 +3,6 @@ rapidfuzz
 pandas
 numpy
 matplotlib
+transformers
+torch
+scikit-learn

@@ -6,16 +6,12 @@ from cos_analysis import process_folds
 
 
 # -----------------------------------------------------------
-# Streamlit Cache
-# -----------------------------------------------------------
 
 @st.cache_data
 def compute_results():
     return process_folds()
 
 
-# -----------------------------------------------------------
-# Page Title
 # -----------------------------------------------------------
 
 st.title("CodeBERT Semantic Similarity Analysis")
@@ -33,8 +29,6 @@ You can explore:
 
 
 # -----------------------------------------------------------
-# Controls
-# -----------------------------------------------------------
 
 st.header("Controls")
 
@@ -47,8 +41,6 @@ selected_folds = st.multiselect("Select folds to analyze", all_folds, default=al
 split = st.selectbox("Select split", ["fit", "validate", "test"])
 
 
-# -----------------------------------------------------------
-# SECTION 1 — Statistics Table
 # -----------------------------------------------------------
 
 st.header("Statistics Table")
@@ -66,8 +58,6 @@ df_stats = pd.DataFrame(rows).set_index("Fold")
 st.dataframe(df_stats)
 
 
-# -----------------------------------------------------------
-# SECTION 2 — Fold Comparison Plot
 # -----------------------------------------------------------
 
 st.header("Fold Comparison Plot")
@@ -87,8 +77,6 @@ ax.legend()
 st.pyplot(fig)
 
 
-# -----------------------------------------------------------
-# SECTION 3 — Split Comparison (Grouped Bar Chart)
 # -----------------------------------------------------------
 
 st.header("Split Comparison Across Folds")
@@ -115,9 +103,6 @@ ax.legend()
 
 st.pyplot(fig)
 
-
-# -----------------------------------------------------------
-# SECTION 4 — Pairwise Split Differences
 # -----------------------------------------------------------
 
 st.header("Pairwise Split Differences")
@@ -146,8 +131,6 @@ st.dataframe(df_diff.set_index("Fold"))
 
 
 # -----------------------------------------------------------
-# SECTION 5 — Exact Similarity Values
-# -----------------------------------------------------------
 
 st.header("Exact Similarity Values")
 
@@ -165,8 +148,6 @@ df_values = pd.DataFrame(all_rows)
 st.dataframe(df_values)
 
 
-# -----------------------------------------------------------
-# CSV Download
 # -----------------------------------------------------------
 
 csv = df_values.to_csv(index=False)

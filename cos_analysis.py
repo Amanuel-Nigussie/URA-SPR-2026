@@ -11,8 +11,6 @@ DATASET_PATH = os.path.join("x_fold", "bcb")
 
 
 # -----------------------------
-# Load dataset
-# -----------------------------
 def load_jsonl(file_path):
 
     tasks = []
@@ -25,8 +23,6 @@ def load_jsonl(file_path):
 
 
 # -----------------------------
-# Load CodeBERT model
-# -----------------------------
 def load_model():
 
     tokenizer = AutoTokenizer.from_pretrained("microsoft/codebert-base")
@@ -37,8 +33,6 @@ def load_model():
     return tokenizer, model
 
 
-# -----------------------------
-# Compute embedding
 # -----------------------------
 def get_embedding(code, tokenizer, model):
 
@@ -52,8 +46,6 @@ def get_embedding(code, tokenizer, model):
     return embedding.numpy()
 
 
-# -----------------------------
-# Compute cosine similarities
 # -----------------------------
 def compute_similarities(tasks, tokenizer, model):
 
@@ -85,8 +77,7 @@ def compute_similarities(tasks, tokenizer, model):
     return similarities
 
 
-# -----------------------------
-# Compute statistics
+
 # -----------------------------
 def compute_stats(values):
 
@@ -96,8 +87,7 @@ def compute_stats(values):
     return {"Count": len(values), "Mean": float(np.mean(values)), "Median": float(np.median(values)), "Std": float(np.std(values)), "Min": float(np.min(values)), "Max": float(np.max(values))}
 
 
-# -----------------------------
-# Process all folds
+
 # -----------------------------
 def process_folds():
 

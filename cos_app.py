@@ -1,15 +1,13 @@
 import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
-import numpy as np
-from cos_analysis import process_folds
 
 
 # -----------------------------------------------------------
 
 @st.cache_data
-def compute_results():
-    return process_folds()
+def load_data():
+    return pd.read_csv("similarities.csv")
 
 
 # -----------------------------------------------------------
@@ -19,60 +17,71 @@ st.title("CodeBERT Semantic Similarity Analysis")
 st.write("""
 This dashboard analyzes the semantic similarity between **correct and incorrect implementations**
 using **CodeBERT embeddings and cosine similarity**.
-
-You can explore:
-- statistics per fold
-- how folds vary from each other
-- how splits (fit / validate / test) compare
-- pairwise differences between splits
 """)
 
 
 # -----------------------------------------------------------
 
-st.header("Controls")
+df = load_data()
 
-results = compute_results()
+all_folds = sorted(df["fold"].unique())
+all_splits = ["fit", "validate", "test"]
 
-all_folds = list(results.keys())
-
-selected_folds = st.multiselect("Select folds to analyze", all_folds, default=all_folds)
-
-split = st.selectbox("Select split", ["fit", "validate", "test"])
+selected_folds = st.multiselect("Select folds", all_folds, default=all_folds)
+selected_split = st.selectbox("Select split", all_splits)
 
 
 # -----------------------------------------------------------
 
-st.header("Statistics Table")
+filtered = df[(df["fold"].isin(selected_folds)) & (df["split"] == selected_split)]
+
+
+# -----------------------------------------------------------
+
+st.header("Statistics per Fold")
 
 rows = []
 
 for fold in selected_folds:
-    stats = results[fold][split]["stats"]
-    row = {"Fold": fold}
-    row.update(stats)
-    rows.append(row)
+    fold_df = filtered[filtered["fold"] == fold]["sim"]
+    rows.append({
+        "Fold":   fold,
+        "Count":  len(fold_df),
+        "Mean":   round(fold_df.mean(), 4),
+        "Median": round(fold_df.median(), 4),
+        "Std":    round(fold_df.std(), 4),
+        "Min":    round(fold_df.min(), 4),
+        "Max":    round(fold_df.max(), 4),
+    })
 
-df_stats = pd.DataFrame(rows).set_index("Fold")
-
-st.dataframe(df_stats)
+st.dataframe(pd.DataFrame(rows).set_index("Fold"))
 
 
 # -----------------------------------------------------------
 
-st.header("Fold Comparison Plot")
-
-metrics = ["Mean", "Median", "Std", "Min", "Max"]
+st.header("Mean Similarity per Fold")
 
 fig, ax = plt.subplots()
 
-for metric in metrics:
-    values = [results[fold][split]["stats"][metric] for fold in selected_folds]
-    ax.plot(selected_folds, values, marker="o", label=metric)
+means = [filtered[filtered["fold"] == fold]["sim"].mean() for fold in selected_folds]
 
+ax.bar(selected_folds, means)
 ax.set_xlabel("Fold")
-ax.set_ylabel("Similarity Value")
-ax.legend()
+ax.set_ylabel("Mean Similarity")
+ax.set_ylim(0, 1)
+
+st.pyplot(fig)
+
+
+# -----------------------------------------------------------
+
+st.header("Similarity Distribution")
+
+fig, ax = plt.subplots()
+
+ax.hist(filtered["sim"], bins=30, edgecolor="black")
+ax.set_xlabel("Cosine Similarity")
+ax.set_ylabel("Count")
 
 st.pyplot(fig)
 
@@ -81,75 +90,36 @@ st.pyplot(fig)
 
 st.header("Split Comparison Across Folds")
 
-metric_bar = st.selectbox("Metric for split comparison", ["Mean", "Median", "Min", "Max", "Std"])
-
-folds = selected_folds
-splits = ["fit", "validate", "test"]
-
-x = np.arange(len(folds))
-width = 0.25
+metric = st.selectbox("Metric", ["mean", "median", "std", "min", "max"])
 
 fig, ax = plt.subplots()
 
-for i, split_name in enumerate(splits):
-    values = [results[fold][split_name]["stats"][metric_bar] for fold in folds]
-    ax.bar(x + i * width, values, width, label=split_name)
+x = range(len(selected_folds))
+width = 0.25
 
-ax.set_xticks(x + width)
-ax.set_xticklabels(folds)
-ax.set_ylabel(metric_bar)
+for i, split in enumerate(all_splits):
+    split_df = df[(df["fold"].isin(selected_folds)) & (df["split"] == split)]
+    values = [getattr(split_df[split_df["fold"] == fold]["sim"], metric)() for fold in selected_folds]
+    ax.bar([xi + i * width for xi in x], values, width, label=split)
+
+ax.set_xticks([xi + width for xi in x])
+ax.set_xticklabels(selected_folds)
+ax.set_ylabel(metric.capitalize())
 ax.set_xlabel("Fold")
 ax.legend()
 
 st.pyplot(fig)
 
+
 # -----------------------------------------------------------
 
-st.header("Pairwise Split Differences")
+st.header("Raw Similarity Values")
 
-pair = st.selectbox("Select split comparison", [("fit","test"),("fit","validate"),("validate","test")], format_func=lambda x: f"{x[0]} vs {x[1]}")
-
-metric_diff = st.selectbox("Metric for difference", ["Mean","Median","Std"])
-
-split_a, split_b = pair
-
-values = [abs(results[fold][split_a]["stats"][metric_diff] - results[fold][split_b]["stats"][metric_diff]) for fold in selected_folds]
-
-fig, ax = plt.subplots()
-
-ax.bar(selected_folds, values)
-
-ax.set_xlabel("Fold")
-ax.set_ylabel(f"{metric_diff} Difference")
-ax.set_title(f"{split_a} vs {split_b}")
-
-st.pyplot(fig)
-
-df_diff = pd.DataFrame({"Fold": selected_folds, "Difference": values})
-
-st.dataframe(df_diff.set_index("Fold"))
+st.dataframe(filtered[["fold", "split", "task_id", "impl_index", "sim"]], use_container_width=True)
 
 
 # -----------------------------------------------------------
 
-st.header("Exact Similarity Values")
+csv = filtered.to_csv(index=False)
 
-st.write("This table shows the raw cosine similarity scores between correct and incorrect implementations.")
-
-all_rows = []
-
-for fold in selected_folds:
-    values = results[fold][split]["similarities"]
-    for v in values:
-        all_rows.append({"Fold": fold, "Split": split, "Similarity": v})
-
-df_values = pd.DataFrame(all_rows)
-
-st.dataframe(df_values)
-
-
-# -----------------------------------------------------------
-
-csv = df_values.to_csv(index=False)
-
-st.download_button("Download Similarity CSV", csv, "codebert_similarity.csv", "text/csv")
+st.download_button("Download CSV", csv, "similarities_filtered.csv", "text/csv")

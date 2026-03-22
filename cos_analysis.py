@@ -110,7 +110,7 @@ def save_csv(results, output_path="similarities.csv", output_path1="similarities
         for fold, splits in results.items():
             for split, data in splits.items():
                 for task_id, sims in data["similarities"].items():
-                    for impl_idx, sim in enumerate(sims, start=1):
+                    for impl_idx, sim in enumerate(sims, start=0):
                         writer.writerow([fold, split, task_id, impl_idx, sim])
 
     print(f"\nSaved to {output_path}")

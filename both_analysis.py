@@ -142,7 +142,7 @@ def save_csvs(results):
         for fold, splits in results.items():
             for split, data in splits.items():
                 for task_id, sims in data["similarities"].items():
-                    for impl_idx, sim in enumerate(sims, start=1):
+                    for impl_idx, sim in enumerate(sims, start=0):
                         writer.writerow([fold, split, task_id, impl_idx, sim])
     print("Saved csv2_sims_flat.csv")
 
@@ -165,7 +165,7 @@ def save_csvs(results):
         for fold, splits in results.items():
             for split, data in splits.items():
                 for task_id, dist_pairs in data["distances"].items():
-                    for impl_idx, (dist, dist_norm) in enumerate(dist_pairs, start=1):
+                    for impl_idx, (dist, dist_norm) in enumerate(dist_pairs, start=0):
                         writer.writerow([fold, split, task_id, impl_idx, dist, dist_norm])
     print("Saved csv4_distances_flat.csv")
 
@@ -190,7 +190,7 @@ def save_csvs(results):
             for split, data in splits.items():
                 for task_id, sims in data["similarities"].items():
                     dist_pairs = data["distances"][task_id]
-                    for impl_idx, (sim, (dist, dist_norm)) in enumerate(zip(sims, dist_pairs), start=1):
+                    for impl_idx, (sim, (dist, dist_norm)) in enumerate(zip(sims, dist_pairs), start=0):
                         writer.writerow([fold, split, task_id, impl_idx, sim, dist, dist_norm])
     print("Saved csv6_combined_flat.csv")
 

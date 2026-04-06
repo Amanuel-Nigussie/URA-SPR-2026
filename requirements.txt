@@ -6,3 +6,4 @@ matplotlib
 transformers
 torch
 scikit-learn
+scipy

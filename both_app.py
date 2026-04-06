@@ -3,7 +3,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from scipy import stats as scipy_stats
 
-st.set_page_config(page_title="CodeBERT Analysis", layout="wide")
+st.set_page_config(page_title="CodeBERT and Levenshtein Distance Analysis", layout="wide")
 
 @st.cache_data
 def load_data():
@@ -27,7 +27,7 @@ def get_metrics(scale):
     else:
         return ["sim", "distance_norm", "distance"]
 
-st.title("CodeBERT Semantic Similarity Analysis")
+st.title("CodeBERT Semantic Similarity and Levenshtein Distance Analysis")
 
 scale = st.checkbox("Use min-max scaling for similarity and distance normalized", value=False)
 
